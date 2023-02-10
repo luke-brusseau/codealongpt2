@@ -1,3 +1,13 @@
+import {*} with "./tesla_ai.jac";
+
+node faq_state:cai_state {
+    has question;
+    has answer;
+    can nlg {
+        visitor.response = here.answer;
+    }
+}
+
 node faq_root:cai_state {
     can use.qa_classify;
     can nlu {
@@ -26,13 +36,7 @@ node faq_root:cai_state {
         visitor.response = "I can answer a variety of FAQs related to Tesla. What can I help you with?";
     }
 }
-node faq_state:cai_state {
-    has question;
-    has answer;
-    can nlg {
-        visitor.response = here.answer;
-    }
-}
+
 
 graph faq {
     has anchor faq_root;
@@ -97,31 +101,4 @@ walker ingest_faq {
             spawn here ++> node::faq_state(answer=answer);
         }
     }
-}
-
-node cai_state {
-    has name;
-    can init_wlk_ctx {
-        new_wlk_ctx = {
-            "intent": null,
-            "entities": {},
-            "prev_state": null,
-            "next_state": null,
-            "respond": false
-        };
-        if ("entities" in visitor.wlk_ctx) {
-            // Carry over extracted entities from previous interaction
-            new_wlk_ctx["entities"] = visitor.wlk_ctx["entities"];
-        }
-        visitor.wlk_ctx = new_wlk_ctx;
-    }
-    can nlu {}
-    can process {
-        if (visitor.wlk_ctx["prev_state"]): visitor.wlk_ctx["respond"] = true;
-        else {
-            visitor.wlk_ctx["next_state"] = net.root();
-            visitor.wlk_ctx["prev_state"] = here;
-        }
-    }
-    can nlg {}
 }
